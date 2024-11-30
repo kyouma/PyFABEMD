@@ -1,5 +1,6 @@
 # PyFABEMD
-Fast and Adaptive Bidimensional Empirical Mode Decomposition (FABEMD) \[1, 2\] for Python. Based on the description from \[3\]. Supports 2D images with shapes (Height, Width).
+Fast and Adaptive Bidimensional Empirical Mode Decomposition (FABEMD) \[1, 2\] for Python. Based on the description from \[3\].
+Supports 2D images with shapes (Height, Width).
 
 ### Installation:
 
