@@ -1,5 +1,5 @@
 # PyFABEMD
-Fast and Adaptive Bidimensional Empirical Mode Decomposition \[1, 2\] for Python.
+Fast and Adaptive Bidimensional Empirical Mode Decomposition \[1, 2\] for Python. Based on the description from \[3\].
 
 ### Installation:
 
@@ -71,3 +71,5 @@ plt.show()
 \[1\] S. M. A. Bhuiyan, R. R. Adhami and J. F. Khan, "A novel approach of fast and adaptive bidimensional empirical mode decomposition," 2008 IEEE International Conference on Acoustics, Speech and Signal Processing, Las Vegas, NV, USA, 2008, pp. 1313-1316, doi: 10.1109/ICASSP.2008.4517859.
 
 \[2\] Bhuiyan, S.M.A., Adhami, R.R. & Khan, J.F. Fast and Adaptive Bidimensional Empirical Mode Decomposition Using Order-Statistics Filter Based Envelope Estimation. EURASIP J. Adv. Signal Process. 2008, 728356 (2008). https://doi.org/10.1155/2008/728356
+
+\[3\] M. U. Ahmed and D. P. Mandic, "Image fusion based on Fast and Adaptive Bidimensional Empirical Mode Decomposition," 2010 13th International Conference on Information Fusion, Edinburgh, UK, 2010, pp. 1-6, doi: 10.1109/ICIF.2010.5711841.
