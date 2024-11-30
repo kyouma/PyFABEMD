@@ -5,26 +5,26 @@ import skimage
 
 
 def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min', update_extrema_radius=True, strict_extrema=False, eliminate_excessive_extrema=True, show_images=False, debug=False, ):
-    '''A realization of Fast and Adaptive Bidimensional Empirical Mode Decomposition [1, 2]. Based on the description from [3].
+    '''Implementation of Fast and Adaptive Bidimensional Empirical Mode Decomposition [1, 2]. Based on the description from [3].
     Parameters
     ----------
     image : numpy.ndarray
         Input image with shape (Height, Width).
             
     max_modes : int or None, optional
-        Maximum number of intrinsic mode functions (IMFs) besides the residue to compute. `None` to find all IMFs until the residue has less than 2 maxima or less than 2 minima.
+        Maximum number of intrinsic mode functions (IMFs) to compute, besides the residue. Use `None` to find all IMFs until the residue has less than 2 maxima or less than 2 minima.
             
     smooth_by_which_distance : string, optional
-        Which distance between the nearest extrema to use. Either `min` or `max`.
+        Which distance between the nearest extrema to use, either `min` or `max`.
             
     update_extrema_radius : bool, optional
         `True` to use the distance between extrema from the previous iteration for finding extrema on the current iteration. `False` to always use the radius of 1 pixel (may not converge).
                             
     strict_extrema : bool, optional
-        `True` to calculate strict extrema (very slow due to non-separability of the filter). `False` to find non-strict extrema (must be inaccurate).
+        `True` to calculate strict extrema (very slow due to non-separability of the filter). `False` to find non-strict extrema (theoretically must be inaccurate).
                      
     eliminate_excessive_extrema : bool, optional
-        Active if `strict_extrema` is set to `True`. `True` to revise the non-strict extrema and leave only the strict ones. May be slow or even cause a memory crash due if the extrema count is very large.
+        Active only if `strict_extrema` is also set to `True`. `True` to revise the non-strict extrema and leave only the strict ones. May be slow or even cause a memory crash if the extrema count is very large.
                                   
     show_images : bool, optional
         Show the IMFs and the residue for debugging purposes.
