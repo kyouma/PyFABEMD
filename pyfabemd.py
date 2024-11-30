@@ -15,7 +15,7 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
         Maximum number of intrinsic mode functions (IMFs) besides the residue to compute. `None` to find all IMFs until the residue has less than 2 maxima or less than 2 minima.
             
     smooth_by_which_distance : string, optional
-        Which distance between th extrema to use. Either `min` or `max`.
+        Which distance between the nearest extrema to use. Either `min` or `max`.
             
     update_extrema_radius : bool, optional
         `True` to use the distance between extrema from the previous iteration for finding extrema on the current iteration. `False` to always use the radius of 1 pixel (may not converge).
