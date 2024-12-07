@@ -4,7 +4,10 @@ import scipy
 import skimage
 
 
-def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min', update_extrema_radius=True, strict_extrema=False, eliminate_excessive_extrema=True, show_images=False, debug=False, ):
+def fabemd(image, max_modes=None,
+           initial_extrema_radius=1, smooth_by_which_distance: ['max', 'min']='min', update_extrema_radius=True,
+           strict_extrema=False, eliminate_excessive_extrema=True,
+           show_images=False, debug=False):
     '''Implementation of Fast and Adaptive Bidimensional Empirical Mode Decomposition [1, 2]. Based on the description from [3].
     Parameters
     ----------
@@ -13,7 +16,10 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
             
     max_modes : int or None, optional
         Maximum number of intrinsic mode functions (IMFs) to compute, besides the residue. Use `None` to find all IMFs until the residue has less than 2 maxima or less than 2 minima.
-            
+
+    initial_extrema_radius : int, optional
+        Initial radius to scan for local extrema.
+        
     smooth_by_which_distance : string, optional
         Which distance between the nearest extrema to use, either `min` or `max`.
             
@@ -45,11 +51,12 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
     [2] Bhuiyan, S.M.A., Adhami, R.R. & Khan, J.F. Fast and Adaptive Bidimensional Empirical Mode Decomposition Using Order-Statistics Filter Based Envelope Estimation. EURASIP J. Adv. Signal Process. 2008, 728356 (2008). https://doi.org/10.1155/2008/728356
     [3] M. U. Ahmed and D. P. Mandic, "Image fusion based on Fast and Adaptive Bidimensional Empirical Mode Decomposition," 2010 13th International Conference on Information Fusion, Edinburgh, UK, 2010, pp. 1-6, doi: 10.1109/ICIF.2010.5711841.
     '''
+    assert initial_extrema_radius > 0
     assert smooth_by_which_distance in ['max', 'min']
 
-    image = image.astype(float)
+    image = image.astype(np.float32)
     
-    extrema_radius = 1
+    extrema_radius = initial_extrema_radius
     cmap = 'gray'
     
     if show_images:
@@ -63,23 +70,24 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
     residue = image
     while max_modes is None or len(imfs) < max_modes:
         if debug:
-            print(f'{len(imfs)})', end=' ')
+            print(f'{len(imfs)}) {extrema_radius}', end=' ')
 
         # Поиск экстремумов
         # Максимумы
         if strict_extrema:  # Настоящие строгие экстремумы
             footprint = np.full((2 * extrema_radius + 1,) * 2, True)
             footprint[extrema_radius, extrema_radius] = False
-            max_map = residue > scipy.ndimage.maximum_filter(residue, footprint=footprint, mode='mirror')
+            max_map = residue > scipy.ndimage.maximum_filter(residue, footprint=footprint, mode='constant', cval=residue.min())
         else:  # Нестрогие, т.к. у строгих в центре ядра фильтра дыра, из-за которой фильтр становится несепарабельным
-            max_map = residue >= scipy.ndimage.maximum_filter(residue, size=(2 * extrema_radius + 1,) * 2, mode='mirror')
+            max_map = residue >= scipy.ndimage.maximum_filter(residue, size=(2 * extrema_radius + 1,) * 2, mode='constant', cval=residue.min())
             if eliminate_excessive_extrema:  # Но можно затем пройтись медленным фильтром только по найденным кандидатам. Проверено: результат совпадает со строгим фильтром
-                patches = skimage.util.view_as_windows(np.pad(residue, extrema_radius, 'reflect'), (2 * extrema_radius + 1,) * 2)[max_map].copy()  # Здесь может вылететь по памяти
+                patches = skimage.util.view_as_windows(np.pad(residue, extrema_radius, 'constant', constant_values=residue.min()), (2 * extrema_radius + 1,) * 2)[max_map].copy()  # Здесь может вылететь по памяти
                 patches[:, extrema_radius, extrema_radius] = np.nan
                 true_map = residue[max_map] > np.nanmax(patches, axis=(-1, -2))
                 max_map_ = max_map.copy()
                 max_map_[np.where(max_map_)[0][~true_map], np.where(max_map)[1][~true_map]] = False
                 max_map = max_map_
+                del max_map_
         
         if debug:
             print('.', end=' ')
@@ -88,16 +96,17 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
         if strict_extrema:  # Настоящие строгие экстремумы
             footprint = np.full((2 * extrema_radius + 1,) * 2, True)
             footprint[extrema_radius, extrema_radius] = False
-            min_map = residue < scipy.ndimage.minimum_filter(residue, footprint=footprint, mode='mirror')
+            min_map = residue < scipy.ndimage.minimum_filter(residue, footprint=footprint, mode='constant', cval=residue.max())
         else:  # Нестрогие, т.к. у строгих в центре ядра фильтра дыра, из-за которой фильтр становится несепарабельным
-            min_map = residue <= scipy.ndimage.minimum_filter(residue, size=(2 * extrema_radius + 1,) * 2, mode='mirror')
+            min_map = residue <= scipy.ndimage.minimum_filter(residue, size=(2 * extrema_radius + 1,) * 2, mode='constant', cval=residue.max())
             if eliminate_excessive_extrema:  # Но можно затем пройтись медленным фильтром только по найденным кандидатам. Проверено: результат совпадает со строгим фильтром
-                patches = skimage.util.view_as_windows(np.pad(residue, extrema_radius, 'reflect'), (2 * extrema_radius + 1,) * 2)[min_map].copy()  # Здесь может вылететь по памяти
+                patches = skimage.util.view_as_windows(np.pad(residue, extrema_radius, 'constant', constant_values=residue.max()), (2 * extrema_radius + 1,) * 2)[min_map].copy()  # Здесь может вылететь по памяти
                 patches[:, extrema_radius, extrema_radius] = np.nan
                 true_map = residue[min_map] < np.nanmin(patches, axis=(-1, -2))
                 min_map_ = min_map.copy()
                 min_map_[np.where(min_map_)[0][~true_map], np.where(min_map_)[1][~true_map]] = False
-                min_map = min_map
+                min_map = min_map_  # Ошибка: нет подчёркивания в конце правой части
+                del min_map_
                 
         if debug:
             print('.', end=' ')
@@ -105,19 +114,6 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
         # Проверка на монотонность (должно быть "сумма < 3", но было лень делать обработку случая, когда минимум или максимум только один)
         if (max_map.sum() < 2) or (min_map.sum() < 2):
             break
-            
-        # if show_images:
-        #     plt.figure(figsize=(10, 2))
-        #     plt.subplot(1, 4, 1)
-        #     plt.imshow(max_map, cmap=cmap)
-        #     plt.subplot(1, 4, 2)
-        #     plt.imshow(np.nanmax(patches, axis=(-1, -2)), cmap=cmap, vmin=image.min(), vmax=image.max())
-        #     plt.subplot(1, 4, 3)
-        #     plt.imshow(min_map, cmap=cmap)
-        #     plt.subplot(1, 4, 4)
-        #     plt.imshow(np.nanmin(patches, axis=(-1, -2)), cmap=cmap, vmin=image.min(), vmax=image.max())
-        #     plt.tight_layout()
-        #     plt.show()
 
         # Вычисление дистанций между экстремумами
         smoothing_distance = []
@@ -147,15 +143,6 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
         lower_envelope = scipy.ndimage.minimum_filter(residue, smoothing_distance, mode='nearest')
         if debug:
             print('.', end=' ')
-    
-        # if show_images:
-        #     plt.figure(figsize=(5, 2))
-        #     plt.subplot(1, 2, 1)
-        #     plt.imshow(upper_envelope, cmap=cmap, vmin=image.min(), vmax=image.max())
-        #     plt.subplot(1, 2, 2)
-        #     plt.imshow(lower_envelope, cmap=cmap, vmin=image.min(), vmax=image.max())
-        #     plt.tight_layout()
-        #     plt.show()
 
         # Гладкие огибающие (на краях не идеально, но сойдёт)
         smooth_envelopes = []
@@ -163,15 +150,6 @@ def fabemd(image, max_modes=None, smooth_by_which_distance: ['max', 'min']='min'
             smooth_envelopes.append(scipy.ndimage.uniform_filter(envelope, smoothing_distance, mode='nearest'))
             if debug:
                 print(';', end=' ')
-    
-        # if show_images:
-        #     plt.figure(figsize=(5, 2))
-        #     plt.subplot(1, 2, 1)
-        #     plt.imshow(smooth_envelopes[0], cmap=cmap, vmin=image.min(), vmax=image.max())
-        #     plt.subplot(1, 2, 2)
-        #     plt.imshow(smooth_envelopes[1], cmap=cmap, vmin=image.min(), vmax=image.max())
-        #     plt.tight_layout()
-        #     plt.show()
 
         # Вычисление моды и остатка
         new_residue = np.mean(smooth_envelopes, axis=0)
