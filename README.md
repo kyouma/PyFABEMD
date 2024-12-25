@@ -22,7 +22,7 @@ img = skimage.data.camera()
 import pyfabemd  # Import the module
 
 # Get all of the intrinsic mode functions (IMFs) and the residue, and the envelope smoothing window sizes for each iteration
-imfs, smoothing_windows = pyfabemd.fabemd(img, max_modes=None)
+imfs, smoothing_windows = pyfabemd.fabemd(img, max_modes=None, extrema_radius_grows_monotonically=True)  # Make the extrema scan window grow as the smoothing window grows
 ```
 
 **Plot the IMFs and the residue:**
