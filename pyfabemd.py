@@ -46,13 +46,13 @@ def fabemd(
     image: np.ndarray, max_modes: typing.Optional[int]=None,
     initial_extrema_radius: int=1,
     smooth_by_which_distance: ['max', 'min']='min',
-    extrema_radius_grows_monotonically: bool=False,
+    extrema_radius_grows_monotonically: bool=True,
     debug: bool=False
-) -> tuple[np.ndarray, list[int]]:
+) -> tuple[list[np.ndarray], list[int]]:
     """
     Apply Fast and Adaptive Bidimensional Empirical Mode Decomposition [1, 2] algorithm to the image.
 
-    The implementation is based on the description from [3].
+    The implementation is based on the description from [3], but with the extrema search radius monotonically increasing.
 
     References
     ----------
@@ -73,16 +73,16 @@ def fabemd(
     smooth_by_which_distance : ['max', 'min'], optional
         Which distance between the nearest extrema to use for smoothing. The default is 'min'.
     extrema_radius_grows_monotonically : bool, optional
-        Update the local extrema scan radius with the calculated smoothing window size, or always use the initial radius. The default is False.
+        Update the local extrema scan radius with the calculated smoothing window size, or always use the initial radius. The default is True.
     debug : bool, optional
         Print progress report during steps execution. The default is False.
 
     Returns
     -------
-    imfs : np.ndarray
-        The array of IMFs and the residue, with the shape (number of IMFs + 1, <input image shape>).
+    imfs : list[np.ndarray]
+        The list of length (number of IMFs + 1) of IMFs and residue arrays, each of shape (input image shape).
     smoothing_window_sizes : list[int]
-        The list of envelope smoothing window sizes for each iteration.
+        The list of length (number of IMFs) of envelope smoothing window sizes for each iteration.
     """
     assert initial_extrema_radius > 0
     assert smooth_by_which_distance in ['max', 'min']
@@ -166,5 +166,5 @@ def fabemd(
             print()
 
     imfs.append(residue)
-    imfs = np.array(imfs)
+    # imfs = np.array(imfs)
     return imfs, smoothing_window_sizes
