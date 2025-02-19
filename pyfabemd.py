@@ -1,10 +1,23 @@
+import os
 import typing
+import warnings
 
 import numpy as np
+import psutil
 import scipy
 
 
+
 RAM_LIMIT = 1  # split image patches into batches with the batch size limited by this amount of GB
+
+
+def limit_ram_usage(ratio=0.9, use_available=True):
+    assert 0 <= ratio <= 1.0, 'Argument `ratio` must be between 0 and 1.'
+    import resource
+    soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_AS)
+    if soft_limit == -1:
+        total_memory = psutil.virtual_memory().available if use_available else psutil.virtual_memory().total
+        resource.setrlimit(resource.RLIMIT_AS, (int(total_memory * ratio), hard_limit))
 
 
 def _find_local_extrema(image, extrema_type: ['max', 'min'], extrema_radius):
@@ -87,7 +100,16 @@ def fabemd(
     assert initial_extrema_radius > 0
     assert smooth_by_which_distance in ['max', 'min']
 
-    image = image.astype('float32')
+    if os.name == 'posix':
+        limit_ram_usage()
+
+    if not np.issubdtype(image.dtype, np.floating):
+        warnings.warn('Argument `image` is not of dtype `float`. Converting to `float32`.')
+        image = image.astype('float32')
+
+    if not image.dtype == 'float32':
+        warnings.warn('Converting `image` to `float32` for better convergence.')
+        image = image.astype('float32')
 
     extrema_radius = initial_extrema_radius
 
