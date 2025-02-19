@@ -16,10 +16,10 @@ def _find_local_extrema(image, extrema_type: ['max', 'min'], extrema_radius):
     window_sizes = (2 * extrema_radius + 1,) * ndims
     center_ix = (extrema_radius,) * ndims
     window_axes = tuple(range(-1, -1 - ndims, -1))
-    padding_cval = image.min()
+    padding_cval = image.min()  # TODO
 
     # Search for non-strict extrema with the separable extrema filter, and then check and filter detected points
-    extrema_map = image >= scipy.ndimage.maximum_filter(image, size=window_sizes, mode='constant', cval=padding_cval)
+    extrema_map = image >= scipy.ndimage.maximum_filter(image, size=window_sizes, mode='constant', cval=padding_cval)  # TODO
     patches = np.lib.stride_tricks.sliding_window_view(np.pad(image, extrema_radius, 'constant', constant_values=padding_cval), window_sizes)
 
     ram_limit = int(RAM_LIMIT * 1024**3)
@@ -33,7 +33,7 @@ def _find_local_extrema(image, extrema_type: ['max', 'min'], extrema_radius):
     for ix in extrema_ix:
         patches_ = patches[ix]  # Here the program may crash by RAM
 
-        windowed_comparison_map = image[ix][(...,) + (np.newaxis,) * ndims] > patches_
+        windowed_comparison_map = image[ix][(...,) + (np.newaxis,) * ndims] > patches_  # TODO
         windowed_comparison_map[(...,) + center_ix] = True
         true_map = windowed_comparison_map.all(axis=window_axes)
 
@@ -86,6 +86,8 @@ def fabemd(
     """
     assert initial_extrema_radius > 0
     assert smooth_by_which_distance in ['max', 'min']
+
+    image = image.astype('float32')
 
     extrema_radius = initial_extrema_radius
 
