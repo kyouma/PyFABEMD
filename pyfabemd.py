@@ -20,7 +20,11 @@ def limit_ram_usage(ratio: float = 0.9, use_available: bool = True):
         resource.setrlimit(resource.RLIMIT_AS, (int(total_memory * ratio), hard_limit))
 
 
-def _find_local_extrema(image: np.typing.NDArray, extrema_type: typing.Literal['max', 'min'], extrema_radius: int):
+def _find_local_extrema(
+    image: np.typing.NDArray,
+    extrema_type: typing.Literal['max', 'min'],
+    extrema_radius: int
+):
     if extrema_type == 'min':
         image = -image
 
@@ -62,7 +66,7 @@ def fabemd(
     smooth_by_which_distance: typing.Literal['max', 'min'] = 'min',
     extrema_radius_grows_monotonically: bool = True,
     debug: bool = False
-) -> tuple[list[np.ndarray], list[int]]:
+) -> tuple[list[np.typing.NDArray], list[int]]:
     """
     Apply Fast and Adaptive Bidimensional Empirical Mode Decomposition [1, 2] algorithm to the image.
 
@@ -172,16 +176,14 @@ def fabemd(
         if debug:
             print('Done')
 
-        # Calculate smooth envelopes (may have some issues on the border of the image)if debug:
+        # Calculate residue with envelope smoothing (may have some issues on the border of the image)
         if debug:
             print('    Smoothing the envelopes... ', end='')
-        smooth_envelopes = []
-        for envelope in [upper_envelope, lower_envelope]:
-            smooth_envelopes.append(scipy.ndimage.uniform_filter(envelope, smoothing_distance, mode='nearest'))
-            if debug:
-                print('Done', end=' and... ' if envelope is upper_envelope else '\n')
+        new_residue = np.mean([upper_envelope, lower_envelope], axis=0)
+        new_residue = scipy.ndimage.uniform_filter(new_residue, smoothing_distance, mode='nearest')
+        if debug:
+            print('Done')
 
-        new_residue = np.mean(smooth_envelopes, axis=0)
         new_imf = residue - new_residue
 
         imfs.append(new_imf)
