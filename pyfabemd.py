@@ -11,7 +11,7 @@ import scipy
 RAM_LIMIT = 1  # split image patches into batches with the batch size limited by this amount of GB
 
 
-def limit_ram_usage(ratio=0.9, use_available=True):
+def limit_ram_usage(ratio: float = 0.9, use_available: bool = True):
     assert 0 <= ratio <= 1.0, 'Argument `ratio` must be between 0 and 1.'
     import resource
     soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_AS)
@@ -20,7 +20,7 @@ def limit_ram_usage(ratio=0.9, use_available=True):
         resource.setrlimit(resource.RLIMIT_AS, (int(total_memory * ratio), hard_limit))
 
 
-def _find_local_extrema(image, extrema_type: ['max', 'min'], extrema_radius):
+def _find_local_extrema(image: np.typing.NDArray, extrema_type: typing.Literal['max', 'min'], extrema_radius: int):
     if extrema_type == 'min':
         image = -image
 
@@ -56,11 +56,12 @@ def _find_local_extrema(image, extrema_type: ['max', 'min'], extrema_radius):
 
 
 def fabemd(
-    image: np.ndarray, max_modes: typing.Optional[int]=None,
-    initial_extrema_radius: int=1,
-    smooth_by_which_distance: ['max', 'min']='min',
-    extrema_radius_grows_monotonically: bool=True,
-    debug: bool=False
+    image: np.typing.NDArray,
+    max_modes: typing.Optional[int] = None,
+    initial_extrema_radius: int = 1,
+    smooth_by_which_distance: typing.Literal['max', 'min'] = 'min',
+    extrema_radius_grows_monotonically: bool = True,
+    debug: bool = False
 ) -> tuple[list[np.ndarray], list[int]]:
     """
     Apply Fast and Adaptive Bidimensional Empirical Mode Decomposition [1, 2] algorithm to the image.
