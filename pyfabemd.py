@@ -36,8 +36,10 @@ def _find_local_extrema(
     padding_cval = image.min()  # TODO
 
     # Search for non-strict extrema with the separable extrema filter, and then check and filter detected points
-    extrema_map = image >= scipy.ndimage.maximum_filter(image, size=window_sizes, mode='constant', cval=padding_cval)  # TODO
-    patches = np.lib.stride_tricks.sliding_window_view(np.pad(image, extrema_radius, 'constant', constant_values=padding_cval), window_sizes)
+    extrema_filtered_image = scipy.ndimage.maximum_filter(image, size=window_sizes, mode='constant', cval=padding_cval)  # TODO
+    extrema_map = image >= extrema_filtered_image
+    padded_image = np.pad(image, extrema_radius, 'constant', constant_values=padding_cval)
+    patches = np.lib.stride_tricks.sliding_window_view(padded_image, window_sizes)
 
     ram_limit = int(RAM_LIMIT * 1024**3)
 
@@ -56,7 +58,9 @@ def _find_local_extrema(
 
         extrema_map[tuple(x[~true_map] for x in ix)] = False
 
-    return extrema_map
+    extrema_coords = np.array(np.where(extrema_map)).T
+    
+    return extrema_coords
 
 
 def fabemd(
@@ -128,16 +132,16 @@ def fabemd(
             print(f'    The local extrema search radius is {extrema_radius}.')
 
         # Find local extrema
-        max_map = _find_local_extrema(residue, 'max', extrema_radius)
+        max_coords = _find_local_extrema(residue, 'max', extrema_radius)
         if debug:
-            print(f'    {max_map.sum()} local maxima have been found.')
-        min_map = _find_local_extrema(residue, 'min', extrema_radius)
+            print(f'    {len(max_coords)} local maxima have been found.')
+        min_coords = _find_local_extrema(residue, 'min', extrema_radius)
         if debug:
-            print(f'    {min_map.sum()} local minima have been found.')
+            print(f'    {len(min_coords)} local minima have been found.')
 
         # Check for the stopping criterion
         # if (max_map.sum() < 2) or (min_map.sum() < 2):
-        if max_map.sum() + min_map.sum() < 3:
+        if len(max_coords) + len(min_coords) < 3:
             if debug:
                 print('\nFinished.')
             break
@@ -146,13 +150,12 @@ def fabemd(
         if debug:
             print('    Calculating the distances between the local extrema... ', end='')
         smoothing_distance = []
-        for map_ in [max_map, min_map]:
-            coords = np.array(np.where(map_)).T
+        for coords in [max_coords, min_coords]:
             if coords.shape[0] > 1:
                 distances = scipy.spatial.KDTree(coords).query(coords, k=2, workers=-1)[0][:, -1]  # Without KDTree may crash by RAM
                 smoothing_distance.append(distances.max() if smooth_by_which_distance == 'max' else distances.min())
             if debug:
-                print('Done', end=' and... ' if map_ is max_map else '\n')
+                print('Done', end=' and... ' if coords is max_coords else '\n')
 
         smoothing_distance = max(smoothing_distance) if smooth_by_which_distance == 'max' else min(smoothing_distance)
         smoothing_distance = 2 * int(np.ceil(smoothing_distance / 2)) + 1
