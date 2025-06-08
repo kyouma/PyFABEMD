@@ -33,10 +33,10 @@ def _find_local_extrema(
     window_sizes = (2 * extrema_radius + 1,) * ndims
     center_ix = (extrema_radius,) * ndims
     window_axes = tuple(range(-1, -1 - ndims, -1))
-    padding_cval = image.min()  # TODO
+    padding_cval = image.min()
 
     # Search for non-strict extrema with the separable extrema filter, and then check and filter detected points
-    extrema_filtered_image = scipy.ndimage.maximum_filter(image, size=window_sizes, mode='constant', cval=padding_cval)  # TODO
+    extrema_filtered_image = scipy.ndimage.maximum_filter(image, size=window_sizes, mode='constant', cval=padding_cval)
     extrema_map = image >= extrema_filtered_image
     padded_image = np.pad(image, extrema_radius, 'constant', constant_values=padding_cval)
     patches = np.lib.stride_tricks.sliding_window_view(padded_image, window_sizes)
@@ -52,7 +52,7 @@ def _find_local_extrema(
     for ix in extrema_ix:
         patches_ = patches[ix]  # Here the program may crash by RAM
 
-        windowed_comparison_map = image[ix][(...,) + (np.newaxis,) * ndims] > patches_  # TODO
+        windowed_comparison_map = image[ix][(...,) + (np.newaxis,) * ndims] > patches_
         windowed_comparison_map[(...,) + center_ix] = True
         true_map = windowed_comparison_map.all(axis=window_axes)
 
@@ -152,8 +152,8 @@ def fabemd(
         smoothing_distance = []
         for coords in [max_coords, min_coords]:
             if coords.shape[0] > 1:
-                distances = scipy.spatial.KDTree(coords).query(coords, k=2, workers=-1)[0][:, -1]  # Without KDTree may crash by RAM
-                smoothing_distance.append(distances.max() if smooth_by_which_distance == 'max' else distances.min())
+                neighbor_distances = scipy.spatial.KDTree(coords).query(coords, k=2, workers=-1)[0][:, 1]  # Without KDTree may crash by RAM
+                smoothing_distance.append(neighbor_distances.max() if smooth_by_which_distance == 'max' else neighbor_distances.min())
             if debug:
                 print('Done', end=' and... ' if coords is max_coords else '\n')
 
