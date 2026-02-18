@@ -1,4 +1,5 @@
 # PyFABEMD
+
 Implementation of Fast and Adaptive Bidimensional Empirical Mode Decomposition (FABEMD) \[1, 2\] for Python. Based on the description from \[3\]. \
 Supports 2D images with shapes (Height, Width).
 
@@ -51,7 +52,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![Без имени](https://github.com/user-attachments/assets/b1bcb132-6c6a-4c78-aa95-1eef0bad6f7c)
+![IMFs and residue](https://github.com/user-attachments/assets/e3366dd8-79dd-43bd-9195-3fe16e98e09c)
 
 **Plot some statistics:**
 
@@ -75,7 +76,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![Без имени](https://github.com/user-attachments/assets/fb4c8a99-86c9-4f9b-93a9-04338586d593)
+![IMF statistics](https://github.com/user-attachments/assets/8ca366d4-74f4-49ea-96e3-126ce48f0e37)
 
 ### References:
 
