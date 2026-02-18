@@ -14,7 +14,7 @@ RAM_LIMIT = 1  # Split image patches into batches with the batch size limited by
 def limit_ram_usage(ratio: float = 0.9, use_available: bool = True):
     if os.name != 'posix':
         warnings.warn(
-            message='The operating system is not POSIX. The memory will not be limited.'
+            'The operating system is not POSIX. The memory will not be limited.'
         )
         return
 
@@ -116,9 +116,9 @@ def _calculate_imf(
     if (len(max_coords) + len(min_coords)) < 3:  # This criterion seems to be better than "any len(...) < 2"
         if verbose:
             print('\nThe extrema count stopping criteria has been achieved.')
-            return IntrinsicModeFunctionData(
-                imf=None, residue=input_image.copy(), imf_smoothing_distance=None
-            )
+        return IntrinsicModeFunctionData(
+            imf=None, residue=input_image.copy(), imf_smoothing_distance=None
+        )
 
     # Calculate the distances between the local extrema
     if verbose:
