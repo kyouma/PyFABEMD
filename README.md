@@ -76,7 +76,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-![IMF statistics](https://github.com/user-attachments/assets/8ca366d4-74f4-49ea-96e3-126ce48f0e37)
+![IMF statistics](https://github.com/user-attachments/assets/c34aa4bb-953b-4bda-b1ec-7fbddcb239ff)
 
 ### References:
 
